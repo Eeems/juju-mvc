@@ -51,20 +51,42 @@
 					value: config
 				}),
 				open: function(){
-					ui.empty();
 					var setup = function(name){
-							if(config[name]!==undefined){
-								if(config[name].children){
-									for(var i in config[name].children){
-										ui[name].add(widget.new(config[name].children[i]));
+							var item = config[name],i;
+							if(item!==undefined){
+								if(item.children){
+									for(i in item.children){
+										ui[name].add(widget.new(item.children[i]));
+									}
+								}
+								if(item.css!==undefined){
+									ui[name].css = item.css;
+								}
+								if(item.attributes!==undefined){
+									ui[name].attributes = item.attributes;
+								}
+								if(item.events !== undefined){
+									for(i in item.events){
+										body.on(i,item.events[i]);
 									}
 								}
 							}
-						};
+						},
+						i;
+					ui.reset()
+						.parent
+						.css(config.css)
+						.attr(config.attributes);
+					if(config.events !== undefined){
+						for(i in config.events){
+							ui.parent.on(i,config.events[i]);
+						}
+					}
 					setup('header');
 					setup('nav');
 					setup('body');
 					setup('footer');
+					ui.render();
 				}
 			});
 			views.push(self);
