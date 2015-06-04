@@ -11,12 +11,26 @@
 					}
 				}
 				fetch('app/views/'+name+'.js',{cache:'no-store'}).then(function(res){
-					res.text().then(function(text){
-						resolve(
-							new global.mvc.View(name,(new Function(text+';return View;'))())
-						);
-					}).catch(reject);
-				});
+					return res.text().then(function(text){
+						return (new Function(text+';return View;'))();
+					});
+				}).then(function(config){
+					return new Promise(function(resolve,reject){
+						mvc.controller(config.controller).then(function(controller){
+							config.controller = controller;
+							resolve(config);
+						}).catch(reject);
+					});
+				}).then(function(config){
+					return new Promise(function(resolve,reject){
+						mvc.model(config.model).then(function(model){
+							config.model = model;
+							resolve(config);
+						}).catch(reject);
+					});
+				}).then(function(config){
+					resolve(new global.mvc.View(name,config));
+				}).catch(reject);
 			});
 		},
 		views: new Prop({
@@ -37,6 +51,14 @@
 				config: new Prop({
 					readonly: true,
 					value: config
+				}),
+				controller: new Prop({
+					readonly: true,
+					value: config.controller
+				}),
+				model: new Prop({
+					readonly: true,
+					value: config.model
 				}),
 				open: function(){
 					var setup = function(name){

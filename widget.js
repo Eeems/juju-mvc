@@ -41,7 +41,7 @@
 			types.push(self);
 			return self;
 		},
-		Widget: function(props){
+		Widget: function(parent,props){
 			var type,
 				self,
 				render = function(){},
@@ -113,6 +113,7 @@
 					return self;
 				},
 				add: function(widget){
+					widget.parent = self;
 					widgets.push(widget);
 					self.render();
 					return self;
