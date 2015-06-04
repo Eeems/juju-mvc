@@ -2,35 +2,23 @@
 	"use strict";
 	var views = [];
 	global.mvc.extend({
-		view: new Module({
-			register: function(){
-				var i,
-					name,
-					get = function(name){
-						fetch('app/views/'+name+'.js',{cache:'no-store'}).then(function(res){
-							res.text().then(function(text){
-								new global.mvc.View(name,(new Function(text+';return View;'))());
-								global.mvc.run();
-							});
-						});
-					};
-				for(i in arguments){
-					name = arguments[i];
-					if(!global.mvc.view.get(name)){
-						global.mvc.wait();
-						get(name);
-					}
-				}
-			},
-			get: function(name){
-				for(var i in views){
+		view: function(name){
+			return new Promise(function(resolve,reject){
+				var i;
+				for(i in views){
 					if(views[i].name == name){
-						return views[i];
+						resolve(views[i]);
 					}
 				}
-				return false;
-			}
-		}),
+				fetch('app/views/'+name+'.js',{cache:'no-store'}).then(function(res){
+					res.text().then(function(text){
+						resolve(
+							new global.mvc.View(name,(new Function(text+';return View;'))())
+						);
+					}).catch(reject);
+				});
+			});
+		},
 		views: new Prop({
 			get: function(){
 				return views;
