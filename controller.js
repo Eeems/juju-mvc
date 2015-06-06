@@ -10,11 +10,11 @@
 						resolve(controllers[i]);
 					}
 				}
-				fetch('app/controllers/'+name+'.js',{cache:'no-store'}).then(function(res){
+				fetch('app/controllers/'+name+'.js',{cache:'no-cache'}).then(function(res){
 					res.text().then(function(text){
-						resolve(
-							new global.mvc.Controller(name,(new Function(text+';return Controller;'))())
-						);
+						return (new Function(text+';return Controller;'))();
+					}).then(function(config){
+						resolve(new global.mvc.Controller(name,config));
 					}).catch(reject);
 				});
 			});

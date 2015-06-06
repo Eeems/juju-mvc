@@ -29,7 +29,7 @@
 					}
 					if(config.children){
 						for(i in config.children){
-							widget.add(global.widget.new(config.children[i]));
+							widget.add(new global.Widget(config.children[i],widget));
 						}
 					}
 					props.init.call(widget,config);
@@ -150,9 +150,6 @@
 					}
 				});
 				return r;
-			},
-			new: function(props){
-				return new Widget(props);
 			}
 		})
 	});

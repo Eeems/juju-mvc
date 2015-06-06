@@ -10,7 +10,7 @@
 						resolve(views[i]);
 					}
 				}
-				fetch('app/views/'+name+'.js',{cache:'no-store'}).then(function(res){
+				fetch('app/views/'+name+'.js',{cache:'no-cache'}).then(function(res){
 					return res.text().then(function(text){
 						return (new Function(text+';return View;'))();
 					});
@@ -66,7 +66,7 @@
 							if(item!==undefined){
 								if(item.children){
 									for(i in item.children){
-										ui[name].add(widget.new(item.children[i]));
+										ui[name].add(new Widget(item.children[i],ui[name]));
 									}
 								}
 								if(item.css!==undefined){
