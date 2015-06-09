@@ -23,7 +23,7 @@
 					var widget = {},
 						i;
 					for(i in self){
-						if(['init','name'].indexOf(i) == -1){
+						if(['init','name','value'].indexOf(i) == -1){
 							widget[i] = self[i];
 						}
 					}
@@ -35,6 +35,27 @@
 					props.init.call(widget,config);
 					widget.css = config.css===undefined?{}:config.css;
 					widget.attributes = config.attributes===undefined?{}:config.attributes;
+					if(props.events !== undefined){
+						for(i in props.events){
+							widget.on(i,props.events[i]);
+						}
+					}
+					if(props.value){
+						widget.extend({
+							_value: null,
+							value: new Prop({
+								get: function(){
+									return this._value;
+								},
+								set: function(val){
+									this._value = val;
+									try{
+										return props.value.apply(this,arguments);
+									}catch(e){}
+								}
+							})
+						});
+					}
 					return widget;
 				}
 			});
@@ -44,6 +65,7 @@
 		Widget: function(props,parent){
 			var type,
 				self,
+				id,
 				render = function(){},
 				widgets = [],
 				i,
@@ -58,11 +80,16 @@
 			if(!type){
 				throw new Error('The '+props.type+' widget type does not exist');
 			}
+			id = type.name+'-'+(+new Date);
 			self = type.init(props);
 			if(self.render!==undefined){
 				render = self.render;
 			}
 			self.extend({
+				id: new Prop({
+					readonly: true,
+					value: id
+				}),
 				body: new Prop({
 					get: function(){
 						return body;
@@ -91,13 +118,18 @@
 					return ret(this.body.width.apply(this.body,arguments));
 				},
 				render: function(){
-					var i;
+					var i,value;
 					if(body){
 						body.drop('*').off();
+						if(self.value){
+							try{
+								value = self.value;
+							}catch(e){}
+						}
 					}else{
 						body = dom.create(this.tagName);
 					}
-					body.css(self.css).attr(self.attributes);
+					body.css(self.css).attr(self.attributes).attr({id:id});
 					if(props.events !== undefined){
 						for(i in props.events){
 							body.on(i,props.events[i]);
@@ -110,6 +142,11 @@
 						}
 					}
 					render.call(self);
+					if(self.value){
+						try{
+							self.value = value;
+						}catch(e){}
+					}
 					return self;
 				},
 				add: function(widget){

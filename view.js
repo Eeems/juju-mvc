@@ -96,6 +96,7 @@
 					setup('nav');
 					setup('body');
 					setup('footer');
+					ui.view = self;
 					ui.render();
 				}
 			});
