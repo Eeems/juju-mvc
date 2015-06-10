@@ -56,6 +56,13 @@
 						return body;
 					}
 				}),
+				record: new Prop({
+					get: function(){
+						if(self.view){
+							return self.view.record;
+						}
+					}
+				}),
 				reset: function(){
 					header.body.remove();
 					nav.body.remove();
@@ -164,18 +171,24 @@
 			}
 		})
 	});
-	global.ready(function(){
-		global.extend({
-			ui: new UserInterface('main',dom.body)
-		}).on('resize',function(){
-			resize = true;
-		}).on('optimizedResize',function(){
-			dom.body
-				.width(viewport.width)
-				.height(viewport.height)
-				.fire('resize');
-			resize = false;
+	widget.require('header')
+		.and('nav')
+		.and('body')
+		.and('footer')
+		.then(function(){
+			global.ready(function(){
+				global.extend({
+					ui: new UserInterface('main',dom.body)
+				}).on('resize',function(){
+					resize = true;
+				}).on('optimizedResize',function(){
+					dom.body
+						.width(viewport.width)
+						.height(viewport.height)
+						.fire('resize');
+					resize = false;
+				});
+				frame();
+			});
 		});
-		frame();
-	});
 })(window);

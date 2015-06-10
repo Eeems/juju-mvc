@@ -79,6 +79,7 @@
 						rollback: function(){
 							data = store.get(id);
 							dirty = false;
+							console.log('Record '+id+' rolled back from '+store.id,data);
 							return self;
 						},
 						commit: function(){
@@ -87,6 +88,7 @@
 								if(!store.config.autocommit){
 									model.commit();
 								}
+								console.log('Record '+id+' committed to '+store.id);
 							}
 							return this;
 						}
@@ -128,13 +130,22 @@
 					return self;
 				},
 				get: function(id){
-					return records[id];
+					return records[id]===undefined?false:records[id];
+				},
+				insert: function(id,data){
+					if(data instanceof Record){
+						data = Record.data;
+					}
+					records.insert(id,new Record(config.columns,data,id,self));
+					console.log('New record for model '+name+' at position '+id,data);
+					return self;
 				},
 				push: function(data){
 					if(data instanceof Record){
 						data = Record.data;
 					}
 					records.push(new Record(config.columns,data,records.length,self));
+					console.log('New record for model '+name+' at position '+(records.length-1),data);
 					return self;
 				},
 				remove: function(id){

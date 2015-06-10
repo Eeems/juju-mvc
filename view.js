@@ -39,7 +39,8 @@
 			}
 		}),
 		View: function(name,config){
-			var self = this;
+			var self = this,
+				current_id = 0;
 			if(config===undefined){
 				throw new Error('There is no config data for '+name+' view');
 			}
@@ -60,7 +61,24 @@
 					readonly: true,
 					value: config.model
 				}),
-				open: function(){
+				id: new Prop({
+					get: function(){
+						return current_id;
+					}
+				}),
+				record: new Prop({
+					get: function(){
+						var r;
+						r = self.model.get(current_id);
+						if(!r){
+							self.model.insert(current_id,{});
+							r = self.model.get(current_id);
+						}
+						return r;
+					}
+				}),
+				open: function(id){
+					current_id = id|0;
 					var setup = function(name){
 							var item = config[name],i;
 							if(item!==undefined){
@@ -87,6 +105,7 @@
 						.parent
 						.css(config.css)
 						.attr(config.attributes);
+					ui.view = self;
 					if(config.events !== undefined){
 						for(i in config.events){
 							ui.parent.on(i,config.events[i]);
@@ -96,7 +115,6 @@
 					setup('nav');
 					setup('body');
 					setup('footer');
-					ui.view = self;
 					ui.render();
 				}
 			});

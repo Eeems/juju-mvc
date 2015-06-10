@@ -1,6 +1,8 @@
 (function(global,undefined){
 	"use strict";
-	var types = [];
+	var types = [],
+		loading = [],
+		loaded = [];
 	global.extend({
 		WidgetType: function(props){
 			if(props.name === undefined){
@@ -42,13 +44,12 @@
 					}
 					if(props.value){
 						widget.extend({
-							_value: null,
 							value: new Prop({
 								get: function(){
-									return this._value;
+									return this.record.data[this.name];
 								},
 								set: function(val){
-									this._value = val;
+									this.record.data[this.name] = val;
 									try{
 										return props.value.apply(this,arguments);
 									}catch(e){}
@@ -60,6 +61,12 @@
 				}
 			});
 			types.push(self);
+			if(loading.indexOf(props.name)!=-1){
+				loading.splice(loading.indexOf(props.name),1);
+			}
+			if(loaded.indexOf(props.name)==-1){
+				loaded.push(props.name);
+			}
 			return self;
 		},
 		Widget: function(props,parent){
@@ -105,6 +112,20 @@
 						return props.type;
 					}
 				}),
+				name: new Prop({
+					get: function(){
+						if(props.name){
+							return props.name;
+						}
+					}
+				}),
+				record: new Prop({
+					get: function(){
+						if(parent.record){
+							return parent.record;
+						}
+					}
+				}),
 				on: function(){
 					return ret(this.body.on.apply(this.body,arguments));
 				},
@@ -121,11 +142,6 @@
 					var i,value;
 					if(body){
 						body.drop('*').off();
-						if(self.value){
-							try{
-								value = self.value;
-							}catch(e){}
-						}
 					}else{
 						body = dom.create(this.tagName);
 					}
@@ -142,11 +158,6 @@
 						}
 					}
 					render.call(self);
-					if(self.value){
-						try{
-							self.value = value;
-						}catch(e){}
-					}
 					return self;
 				},
 				add: function(widget){
@@ -187,6 +198,46 @@
 					}
 				});
 				return r;
+			},
+			RequirePromise: function(fn){
+				var p = new Promise(fn);
+				p.extend({
+					and: function(name){
+						return new widget.RequirePromise(function(resolve,reject){
+							widget.require(name).then(function(){
+									resolve();
+								})
+								.catch(reject);
+						});
+					}
+				});
+				return p;
+			},
+			require: function(name){
+				return new widget.RequirePromise(function(resolve,reject){
+					if(loading.indexOf(name)!=-1){
+						var fn = function(){
+							if(widget.type(name)){
+								resolve();
+							}else{
+								setTimeout(fn,1);
+							}
+						};
+						fn();
+					}else if(loaded.indexOf(name)==-1){
+						loading.push(name);
+						dom.create('script')
+							.attr({
+								src: 'lib/juju-mvc/widgets/'+name+'.js'
+							})
+							.on('load',function(){
+								resolve();
+							})
+							.appendTo('head');
+					}else{
+						resolve();
+					}
+				});
 			}
 		})
 	});
