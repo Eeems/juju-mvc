@@ -73,7 +73,7 @@
 						}),
 						dirty: new Prop({
 							get: function(){
-								return dirty || !store.has(data);
+								return dirty || store.dirty;
 							}
 						}),
 						rollback: function(){
@@ -137,7 +137,7 @@
 						data = Record.data;
 					}
 					records.insert(id,new Record(config.columns,data,id,self));
-					console.log('New record for model '+name+' at position '+id,data);
+					console.log('New record for model '+name+' at position '+id);
 					return self;
 				},
 				push: function(data){
@@ -145,7 +145,7 @@
 						data = Record.data;
 					}
 					records.push(new Record(config.columns,data,records.length,self));
-					console.log('New record for model '+name+' at position '+(records.length-1),data);
+					console.log('New record for model '+name+' at position '+(records.length-1));
 					return self;
 				},
 				remove: function(id){
@@ -177,7 +177,7 @@
 					return self;
 				}
 			});
-			store.values.each(function(i){
+			store.each(function(i){
 				self.push(this);
 			});
 			models.push(self);
